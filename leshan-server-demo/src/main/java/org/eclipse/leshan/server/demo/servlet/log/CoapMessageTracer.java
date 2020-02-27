@@ -15,9 +15,13 @@
  *******************************************************************************/
 package org.eclipse.leshan.server.demo.servlet.log;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.eclipse.californium.core.coap.EmptyMessage;
 import org.eclipse.californium.core.coap.Request;
@@ -27,6 +31,9 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationService;
 
 public class CoapMessageTracer implements MessageInterceptor {
+
+    Logger logger = Logger.getLogger("MyLog");  
+    FileHandler fh; 
 
     private final Map<String, CoapMessageListener> listeners = new ConcurrentHashMap<>();
 
@@ -52,6 +59,19 @@ public class CoapMessageTracer implements MessageInterceptor {
 
     public CoapMessageTracer(RegistrationService registry) {
         this.registry = registry;
+        try {  
+
+            // This block configure the logger with handler and formatter  
+            this.fh = new FileHandler(System.getProperty("user.home")+"/MyLogFile.log");  
+            this.logger.addHandler(fh);
+            SimpleFormatter formatter = new SimpleFormatter();  
+            this.fh.setFormatter(formatter);  
+    
+        } catch (SecurityException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        } 
     }
 
     @Override
@@ -59,6 +79,7 @@ public class CoapMessageTracer implements MessageInterceptor {
         CoapMessageListener listener = listeners.get(toStringAddress(request.getDestinationContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(request, false));
+            this.logger.info(Integer.toString(new CoapMessage(request, false).mId));
         }
     }
 
@@ -68,6 +89,7 @@ public class CoapMessageTracer implements MessageInterceptor {
                 .get(toStringAddress(response.getDestinationContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(response, false));
+            this.logger.info(Integer.toString(new CoapMessage(response, false).mId));
         }
     }
 
@@ -76,6 +98,7 @@ public class CoapMessageTracer implements MessageInterceptor {
         CoapMessageListener listener = listeners.get(toStringAddress(message.getDestinationContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(message, false));
+            this.logger.info(Integer.toString(new CoapMessage(message, false).mId));
         }
     }
 
@@ -84,6 +107,7 @@ public class CoapMessageTracer implements MessageInterceptor {
         CoapMessageListener listener = listeners.get(toStringAddress(request.getSourceContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(request, true));
+            this.logger.info(Integer.toString(new CoapMessage(request, false).mId));
         }
 
     }
@@ -93,6 +117,7 @@ public class CoapMessageTracer implements MessageInterceptor {
         CoapMessageListener listener = listeners.get(toStringAddress(response.getSourceContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(response, true));
+            this.logger.info(Integer.toString(new CoapMessage(response, false).mId));
         }
 
     }
@@ -102,6 +127,7 @@ public class CoapMessageTracer implements MessageInterceptor {
         CoapMessageListener listener = listeners.get(toStringAddress(message.getSourceContext().getPeerAddress()));
         if (listener != null) {
             listener.trace(new CoapMessage(message, true));
+            this.logger.info(Integer.toString(new CoapMessage(message, false).mId));
         }
 
     }

@@ -31,8 +31,10 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
@@ -57,6 +59,11 @@ import org.eclipse.leshan.core.model.ObjectModel;
 import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeDecoder;
 import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeEncoder;
 import org.eclipse.leshan.core.node.codec.LwM2mNodeDecoder;
+import org.eclipse.leshan.core.observation.Observation;
+import org.eclipse.leshan.core.request.ObserveRequest;
+import org.eclipse.leshan.core.response.ErrorCallback;
+import org.eclipse.leshan.core.response.ObserveResponse;
+import org.eclipse.leshan.core.response.ResponseCallback;
 import org.eclipse.leshan.server.californium.LeshanServer;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
 import org.eclipse.leshan.server.demo.servlet.ClientServlet;
@@ -68,6 +75,9 @@ import org.eclipse.leshan.server.model.LwM2mModelProvider;
 import org.eclipse.leshan.server.model.VersionedModelProvider;
 import org.eclipse.leshan.server.redis.RedisRegistrationStore;
 import org.eclipse.leshan.server.redis.RedisSecurityStore;
+import org.eclipse.leshan.server.registration.Registration;
+import org.eclipse.leshan.server.registration.RegistrationListener;
+import org.eclipse.leshan.server.registration.RegistrationUpdate;
 import org.eclipse.leshan.server.security.EditableSecurityStore;
 import org.eclipse.leshan.server.security.FileSecurityStore;
 import org.eclipse.leshan.util.SecurityUtil;
@@ -384,7 +394,7 @@ public class LeshanServerDemo {
         builder.setEncoder(new DefaultLwM2mNodeEncoder(new MagicLwM2mValueConverter()));
 
         // Create and start LWM2M server
-        LeshanServer lwServer = builder.build();
+        final LeshanServer lwServer = builder.build();
 
         // Now prepare Jetty
         InetSocketAddress jettyAddr;
@@ -438,5 +448,35 @@ public class LeshanServerDemo {
         lwServer.start();
         server.start();
         LOG.info("Web server started at {}.", server.getURI());
+        lwServer.getRegistrationService().addListener(new RegistrationListener() {
+            @Override
+            public void registered(Registration reg, Registration previousReg, Collection<Observation> previousObsersations) {
+               
+                    ObserveRequest request = new ObserveRequest("3311/0");
+                    lwServer.send(reg, request, new ResponseCallback<ObserveResponse>() {
+                        @Override
+                        public void onResponse(ObserveResponse response) {
+                            
+                        }
+                    }, new ErrorCallback() {
+                        @Override
+                        public void onError(Exception e) {
+                            java.util.logging.Logger.getLogger(LeshanServerDemo.class.getName()).log(Level.SEVERE, null, e);
+                        }
+                    });
+                
+            }
+
+            @Override
+            public void updated(RegistrationUpdate update, Registration updatedReg, Registration previousReg) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public void unregistered(Registration reg, Collection<Observation> observations, boolean expired, Registration newReg) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+        
     }
 }

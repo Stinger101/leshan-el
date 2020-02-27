@@ -165,6 +165,7 @@ angular.module('instanceDirectives', [])
                 var format = scope.settings.multi.format;
                 var timeout = scope.settings.timeout.value;
                 var uri = "api/clients/" + $routeParams.clientId + scope.instance.path+"/observe";
+                console.log(uri);
                 $http.post(uri, null, {params:{format:format, timeout:timeout}})
                 .success(function(data, status, headers, config) {
                     helper.handleResponse(data, scope.instance.observe, function (formattedDate) {

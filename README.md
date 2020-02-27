@@ -97,3 +97,12 @@ java -jar leshan-bsserver-demo/target/leshan-bsserver-demo-*-SNAPSHOT-jar-with-d
 Let's start to code !
 ---------------------
 Now you played a bit with our demo, you should start to code your own server or client using our [Getting-started](https://github.com/eclipse/leshan/wiki/Getting-started) guide.
+
+
+
+from Stinger101
+- adding some kinda logging to the app
+code modified in org.eclipse.leshan.server.demo.servlet.log.CoapMessageTracer
+-adding observe on startup
+code modified in LeshanDemoServer main file by adding a registration listener then sending observe request to devices on regisytration
+Both work but are buggy as F.....

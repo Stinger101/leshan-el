@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import java.util.logging.Level;
 
 /**
  * Service HTTP REST API calls.
@@ -269,6 +270,22 @@ public class ClientServlet extends HttpServlet {
         } catch (RuntimeException | InterruptedException e) {
             handleException(e, resp);
         }
+    }
+    
+    
+    protected void doPost(Registration registration){
+        
+        try {
+            // get content format
+            
+            // create & process request
+            ObserveRequest request = new ObserveRequest(registration.getId());
+            ObserveResponse cResponse = server.send(registration, request);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(ClientServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                   
+                
     }
 
     /**
