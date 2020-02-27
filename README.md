@@ -102,7 +102,7 @@ Now you played a bit with our demo, you should start to code your own server or 
 
 from Stinger101
 - adding some kinda logging to the app
-code modified in org.eclipse.leshan.server.demo.servlet.log.CoapMessageTracer
--adding observe on startup
-code modified in LeshanDemoServer main file by adding a registration listener then sending observe request to devices on regisytration
-Both work but are buggy as F.....
+- code modified in org.eclipse.leshan.server.demo.servlet.log.CoapMessageTracer
+- adding observe on startup
+- code modified in LeshanDemoServer main file by adding a registration listener then sending observe request to devices on regisytration
+- Both work but are buggy as F.....
