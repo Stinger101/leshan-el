@@ -31,6 +31,7 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -54,8 +55,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.leshan.LwM2m;
+import org.eclipse.leshan.core.model.LwM2mModel;
 import org.eclipse.leshan.core.model.ObjectLoader;
 import org.eclipse.leshan.core.model.ObjectModel;
+import org.eclipse.leshan.core.node.LwM2mPath;
 import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeDecoder;
 import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeEncoder;
 import org.eclipse.leshan.core.node.codec.LwM2mNodeDecoder;
@@ -81,8 +84,11 @@ import org.eclipse.leshan.server.registration.RegistrationUpdate;
 import org.eclipse.leshan.server.security.EditableSecurityStore;
 import org.eclipse.leshan.server.security.FileSecurityStore;
 import org.eclipse.leshan.util.SecurityUtil;
+import org.eclipse.leshan.Link;
+import org.eclipse.leshan.core.request.ContentFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -448,24 +454,42 @@ public class LeshanServerDemo {
         lwServer.start();
         server.start();
         LOG.info("Web server started at {}.", server.getURI());
+ 
         lwServer.getRegistrationService().addListener(new RegistrationListener() {
             @Override
             public void registered(Registration reg, Registration previousReg, Collection<Observation> previousObsersations) {
-               
-                    ObserveRequest request = new ObserveRequest("3311/0");
-                    lwServer.send(reg, request, new ResponseCallback<ObserveResponse>() {
-                        @Override
-                        public void onResponse(ObserveResponse response) {
-                            
-                        }
-                    }, new ErrorCallback() {
-                        @Override
-                        public void onError(Exception e) {
-                            java.util.logging.Logger.getLogger(LeshanServerDemo.class.getName()).log(Level.SEVERE, null, e);
-                        }
-                    });
+                         
+                String url = "";
                 
-            }
+                // Temp sensor value
+                if(Arrays.asList(reg.getObjectLinks()).stream().anyMatch(l -> "/3303/0".equals(l.getUrl())))  
+                    url = "/3303/0/5700";
+                // Light dim value
+                else if(Arrays.asList(reg.getObjectLinks()).stream().anyMatch(l -> "/3311/0".equals(l.getUrl())))
+                    url = "/3311/0/5851";
+                // Precense digital input state
+                else if(Arrays.asList(reg.getObjectLinks()).stream().anyMatch(l -> "/3302/0".equals(l.getUrl())))
+                    url = "/3302/0/5501";
+                // Actuator on time
+                else if(Arrays.asList(reg.getObjectLinks()).stream().anyMatch(l -> "/3306/0".equals(l.getUrl())))
+                    url = "/3306/0/5852";    
+                else
+                    url = "/";
+                
+                ObserveRequest request = new ObserveRequest(url);
+                lwServer.send(reg, request, new ResponseCallback<ObserveResponse>() {
+                    @Override
+                    public void onResponse(ObserveResponse response) {   
+                        System.out.println(response);
+                    }
+                }, new ErrorCallback() {
+                    @Override
+                    public void onError(Exception e) {
+                        java.util.logging.Logger.getLogger(LeshanServerDemo.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                });
+                    
+             }
 
             @Override
             public void updated(RegistrationUpdate update, Registration updatedReg, Registration previousReg) {
@@ -476,7 +500,7 @@ public class LeshanServerDemo {
             public void unregistered(Registration reg, Collection<Observation> observations, boolean expired, Registration newReg) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
-        });
-        
+         });
+     
     }
 }
